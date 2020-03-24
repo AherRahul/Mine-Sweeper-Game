@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>bombsweeper Game</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+        #grid {
+            margin-left: auto;
+            margin-right: auto;
+            border: 2px solid;
+        }
+        
+        #grid TR TD {
+            border: 1px solid white;
+            background: #999999;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+        }
+        
+        #grid TR TD .clicked {
+            background: #333333;
+            padding: 5px;
+        }
+        
+        #grid TR TD .bomb {
+            background: #FF0000;
+        }
+        
+        img {
+            width: 30px;
+            height: 30px;
+        }
+        
+        .headingOfGame {
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .button-holder {
+            margin: 0 auto;
+            padding: 50px;
+            padding-left: 200px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="container-fluid" style="width: 100%; height: 100vh;">
+        <div class="row">
+            <h1 class="headingOfGame">
+                bombsweeper
+            </h1>
+        </div>
+        <div class="row">
+            <div class="col" style="text-align: center;">
+                <h3>Score</h3>
+                <p>600 <b>Point's</b></p>
+            </div>
+            <div class="col" style="margin: 0 auto; padding-left: 100px; padding-bottom: 30px;">
+                <div class="row" style="text-align: center;">
+                    <div class="col" style="text-align: center;">
+                        <div class="col">
+                            <select class="level form-control">
+                                <option value="" selected>Choose level...</option>
+                                <option value="easy">Easy</option>
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <button class="btn btn-primary" onclick="generateGrid(0, 0, 0);" type="button">New game</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col" style="text-align: center;">
+                <h3>Timmer</h3>
+                <p id="timmer"></p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+
+            </div>
+            <div class="col">
+                <div class="row">
+                    <!--    * this grid hold's the entire table of mindsweeper game created by generateGrid function
+                            * this grid is creted at the begining of page loading, by clicking reset game and new game button
+                            * onClick event is also bind with each cell while generateGrid function is called. it put the data 
+                              attribute "data-bomb" true/false as each cell is created
+                    -->
+                    <table class="grid" id="grid">
+                    </table>
+                </div>
+
+                <div class="row button-holder">
+                    <button type="button" class="btn btn-warning" onclick="generateGrid(0, 0, 0);">Reset Game</button>
+                </div>
+
+            </div>
+            <div class="col">
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var grid = document.getElementById("grid");
+        //Turn this variable to true to see where the bomb are
+        var testMode = true;
+        generateGrid(0, 0, 0);
+
+        function resetTimmer(min, sec, miliSec) {
+            var miliSec = miliSec;
+            var sec = sec;
+            var min = min;
+
+            var x = setInterval(function() {
+                miliSec++;
+                if (miliSec == 60) {
+                    miliSec = 0;
+                    sec++;
+                } else {
+                    sec = sec;
+                }
+                if (sec == 60) {
+                    sec = 0;
+                    min++;
+                }
+                if (min == 10) {
+                    document.getElementsByClassName('container-fluid')[0].style.backgroundColor = 'red';
+                    alert("Time Out!");
+                    generateGrid(0, 0, 0);
+                    min = 0;
+                    sec = 0;
+                    miliSec = 0;
+                    document.getElementById('timmer').innerHTML = '';
+                }
+                document.getElementById('timmer').innerHTML = min + 'm ' + sec + "ss " + miliSec + "ms"
+            }, 1000 / 60);
+            document.getElementById('timmer').innerHTML = '';
+        };
+
+        function generateGrid(min, sec, miliSec) {
+
+            resetTimmer(min, sec, miliSec);
+
+            document.getElementById('grid').style.pointerEvents = '';
+
+            //generate 10 by 10 grid
+            grid.innerHTML = "";
+
+            for (var i = 0; i < 10; i++) {
+                row = grid.insertRow(i);
+
+                for (var j = 0; j < 10; j++) {
+                    cell = row.insertCell(j);
+
+                    cell.onclick = function() {
+                        clickCell(this);
+                    };
+
+                    var bomb = document.createAttribute("data-bomb");
+                    bomb.value = "false";
+                    cell.setAttributeNode(bomb);
+                }
+            }
+            addbombs();
+        }
+
+        function addbombs() {
+            //Add bombs randomly
+            for (var i = 0; i < 20; i++) {
+                var row = Math.floor(Math.random() * 10);
+                var col = Math.floor(Math.random() * 10);
+                var cell = grid.rows[row].cells[col];
+                cell.setAttribute("data-bomb", "true");
+                if (testMode) {
+                    cell.innerHTML = "";
+                }
+            }
+        }
+
+        function revealbombs() {
+            //Highlight all bombs in red
+            for (var i = 0; i < 10; i++) {
+                for (var j = 0; j < 10; j++) {
+                    var cell = grid.rows[i].cells[j];
+                    if (cell.getAttribute("data-bomb") == "true") {
+                        cell.className = "bomb";
+                        for (k = 0; k < document.getElementsByClassName("bomb").length; k++) {
+                            document.getElementsByClassName('bomb')[k].style.backgroundColor = "red";
+                            cell.innerHTML = '<img src="Imgaes/bomb.png">';
+                            document.getElementById('grid').style.pointerEvents = 'none';
+                        }
+                    };
+                }
+            }
+        }
+
+        function checkLevelCompletion() {
+            var levelComplete = true;
+            for (var i = 0; i < 10; i++) {
+                for (var j = 0; j < 10; j++) {
+                    if ((grid.rows[i].cells[j].getAttribute("data-bomb") == "false") && (grid.rows[i].cells[j].innerHTML == "")) levelComplete = false;
+                }
+            }
+            if (levelComplete) {
+                alert("You Win!");
+                revealbombs();
+            }
+        }
+
+        function clickCell(cell) {
+            //Check if the end-user clicked on a bomb
+            if (cell.getAttribute("data-bomb") == "true") {
+                window.clearInterval();
+                document.getElementById('timmer').innerHTML = '00m 00s 00ms';
+
+                revealbombs();
+                alert("Game Over");
+
+            } else {
+                cell.className = "clicked";
+                //Count and display the number of adjacent bombs
+                var bombCount = 0;
+                var cellRow = cell.parentNode.rowIndex;
+                var cellCol = cell.cellIndex;
+
+                //alert(cellRow + " " + cellCol);
+                for (var i = Math.max(cellRow - 1, 0); i <= Math.min(cellRow + 1, 9); i++) {
+                    for (var j = Math.max(cellCol - 1, 0); j <= Math.min(cellCol + 1, 9); j++) {
+                        if (grid.rows[i].cells[j].getAttribute("data-bomb") == "true") bombCount++;
+                    }
+                }
+                cell.innerHTML = bombCount;
+                if (bombCount == 0) {
+                    //Reveal all adjacent cells as they do not have a bomb
+                    for (var i = Math.max(cellRow - 1, 0); i <= Math.min(cellRow + 1, 9); i++) {
+                        for (var j = Math.max(cellCol - 1, 0); j <= Math.min(cellCol + 1, 9); j++) {
+                            //Recursive Call
+                            if (grid.rows[i].cells[j].innerHTML == "") clickCell(grid.rows[i].cells[j]);
+                        }
+                    }
+                }
+                checkLevelCompletion();
+            }
+        }
+    </script>
+
+</body>
+
+</html>
